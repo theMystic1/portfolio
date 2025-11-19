@@ -1,0 +1,193 @@
+/* Tailwind v4 core */
+@import "tailwindcss";
+
+/* (Optional) v4 plugin registration */
+/* @plugin "@tailwindcss/forms"; */
+/* @plugin "@tailwindcss/typography"; */
+
+/* ------------------------------
+   THEME TOKENS (Tailwind v4)
+   ------------------------------ */
+@theme {
+  /* Fonts (wired to next/font variables you add on <body>) */
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, -apple-system,
+    Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans";
+  --font-display: var(--font-display), Cinzel, ui-serif, Georgia, serif;
+
+  /* Space / surfaces */
+  --color-bg: #0e1621;
+  --color-surface: #111927;
+  --color-elevated: #1a2433;
+
+  /* Text */
+  --color-ink-100: #e8ecf4;
+  --color-ink-300: #b2bdcd;
+  --color-ink-500: #7a889c;
+
+  /* Golds (stars/accents) */
+  --color-gold-300: #fde68a;
+  --color-gold-400: #ffd166;
+  --color-gold-500: #f5c84c; /* main star gold */
+  --color-gold-700: #9e7c2a;
+
+  /* Warm accents */
+  --color-ember-500: #fb923c;
+  --color-amber-600: #f59e0b;
+  --color-coral-500: #f87171;
+
+  /* Cool accents */
+  --color-aurora-400: #60a5fa;
+  --color-teal-400: #2dd4bf;
+
+  /* Status */
+  --color-success-500: #16a34a;
+  --color-warning-500: #f59e0b;
+  --color-danger-500: #ef4444;
+  --color-info-500: #38bdf8;
+
+  /* Shadows (token-based => .shadow-gold) */
+  --shadow-gold: 0 0 24px rgba(245, 200, 76, 0.25);
+  --shadow-gold-lg: 0 0 36px rgba(245, 200, 76, 0.35);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* ------------------------------
+   CUSTOM UTILITIES (v4)
+   ------------------------------ */
+@utility bg-gold-gradient {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-gold-500) 0%,
+    var(--color-amber-600) 100%
+  );
+}
+
+@utility bg-nebula-gradient {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--color-gold-500) 22%, transparent),
+    color-mix(in oklab, #a78bfa 12%, transparent) 45%,
+    color-mix(in oklab, var(--color-info-500) 10%, transparent) 100%
+  );
+}
+
+@utility text-shadow-gold {
+  text-shadow: 0 0 22px rgba(245, 200, 76, 0.28);
+}
+
+/* ------------------------------
+   BASE
+   ------------------------------ */
+@layer base {
+  html,
+  body,
+  #__next,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg text-ink-100 antialiased;
+
+    font-family: var(--font-display);
+  }
+
+  ::selection {
+    background: rgba(245, 200, 76, 0.28);
+    color: var(--color-ink-100);
+  }
+
+  a {
+    color: var(--color-aurora-400);
+  }
+  a:hover {
+    color: var(--color-gold-400);
+  }
+}
+
+/* ------------------------------
+   COMPONENT HELPERS
+   ------------------------------ */
+@layer components {
+  .surface {
+    background-color: color-mix(in oklab, var(--color-surface) 88%, black 12%);
+    @apply rounded-2xl border border-white/5 backdrop-blur-sm;
+  }
+
+  .card {
+    background-color: color-mix(in oklab, var(--color-surface) 72%, black 28%);
+    @apply rounded-2xl border border-white/5 p-6;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-xl px-5 py-2.5 font-medium transition;
+  }
+
+  .btn-primary {
+    @apply bg-gold-gradient text-black shadow-gold;
+  }
+  .btn-primary:hover {
+    box-shadow: var(--shadow-gold-lg);
+    transform: translateY(-0.5px);
+  }
+
+  .btn-ghost {
+    @apply border border-white/10 text-ink-100;
+    background: transparent;
+  }
+  .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .headline-gradient {
+    @apply text-transparent bg-clip-text bg-gold-gradient;
+  }
+
+  .nebula-overlay {
+    @apply bg-nebula-gradient;
+  }
+
+  /* Your logo mark & body text (no custom “font-*-var” classes needed) */
+  .logo-mark {
+    @apply font-display font-black tracking-[0.06em] leading-none text-transparent bg-clip-text bg-gold-gradient text-shadow-gold;
+  }
+  .body-text {
+    @apply font-sans;
+  }
+}
+
+/* ------------------------------
+   QUICK UTILS
+   ------------------------------ */
+@layer utilities {
+  .text-dim {
+    color: var(--color-ink-300);
+  }
+  .text-muted {
+    color: var(--color-ink-500);
+  }
+
+  .bg-bg {
+    background-color: var(--color-bg);
+  }
+  .bg-surface {
+    background-color: var(--color-surface);
+  }
+  .bg-elevated {
+    background-color: var(--color-elevated);
+  }
+
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
+  }
+  .shadow-gold-lg {
+    box-shadow: var(--shadow-gold-lg);
+  }
+}
