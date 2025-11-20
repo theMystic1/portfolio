@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import {
   FiGrid,
@@ -14,6 +14,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import InitialsLogo from "../ui/initials-logo";
+import { clearToken } from "@/backend/lib/helpers";
 
 type Item = { label: string; href: string; icon: keyof typeof ICONS };
 type Props = {
@@ -170,9 +171,17 @@ function NavList({
 }
 
 function FooterActions({ collapsed }: { collapsed: boolean }) {
+  const router = useRouter();
+  const handleLogout = () => {
+    clearToken();
+    router?.replace("/admin-login");
+  };
   return (
     <div className="mt-2">
-      <button className="w-full inline-flex items-center gap-3 rounded-lg border border-white/10 bg-danger-500/15 px-3 py-2 text-sm text-danger-500 hover:bg-danger-500/25">
+      <button
+        className="w-full inline-flex items-center gap-3 rounded-lg border border-white/10 bg-danger-500/15 px-3 py-2 text-sm text-danger-500 hover:bg-danger-500/25"
+        onClick={handleLogout}
+      >
         <FiLogOut className="h-4 w-4" />
         {!collapsed && <span>Sign out</span>}
       </button>

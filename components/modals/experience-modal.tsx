@@ -4,6 +4,13 @@ import * as React from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { validateExperience } from "@/lib/validator";
 import Modal from "../ui/modal";
+import toast from "react-hot-toast";
+import {
+  createExperience,
+  deleteExperience,
+  updateExperience,
+} from "@/backend/lib/apii";
+import { useRouter } from "next/navigation";
 
 /** --------- Types (inline to avoid external deps) --------- */
 export type ProjectItem = {
@@ -39,7 +46,19 @@ type ExperienceFormProps = {
   submitLabel?: string;
   /** if provided, *you* handle submit (used by modals); internal fetch is skipped */
   onSubmitOverride?: (values: ExperienceFormValues) => Promise<void> | void;
+  loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
+
+function formatDateForInput(d?: string | Date | null) {
+  if (!d) return "";
+  const dt = d instanceof Date ? d : new Date(d);
+  if (isNaN(dt.getTime())) return "";
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const day = String(dt.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 export default function ExperienceForm({
   experienceId,
@@ -48,8 +67,11 @@ export default function ExperienceForm({
   labels,
   submitLabel,
   onSubmitOverride,
+  setLoading,
+  loading,
 }: ExperienceFormProps) {
   const isEdit = Boolean(experienceId || initial?._id);
+  const router = useRouter();
 
   // sensible defaults
   const defaults: ExperienceFormValues = {
@@ -60,10 +82,15 @@ export default function ExperienceForm({
       jobType: initial?.company?.jobType ?? "",
     },
     projects: (initial?.projects as ProjectItem[]) ?? [],
-    startDate: initial?.startDate ?? "",
-    endDate: initial?.endDate ?? "",
+    startDate: formatDateForInput(initial?.startDate) ?? "",
+    endDate: initial?.isCurrent
+      ? ""
+      : formatDateForInput(initial?.endDate) ?? "",
+
     isCurrent: Boolean(initial?.isCurrent ?? false),
   };
+
+  // console.log(defaults, initial);
 
   const {
     register,
@@ -79,7 +106,6 @@ export default function ExperienceForm({
     defaultValues: defaults,
     mode: "onBlur",
   });
-
   const isCurrent = watch("isCurrent");
 
   // Projects array
@@ -126,32 +152,34 @@ export default function ExperienceForm({
       return;
     }
 
-    // If caller wants to handle persistence (modals), use override
-    if (onSubmitOverride) {
-      await onSubmitOverride(values);
-      return;
-    }
+    // // If caller wants to handle persistence (modals), use override
+    // if (onSubmitOverride) {
+    //   await onSubmitOverride(values);
+    //   return;
+    // }
 
     // Default internal persistence
-    const method = isEdit ? "PUT" : "POST";
-    const url = isEdit
-      ? `/api/experience/${experienceId ?? initial?._id}`
-      : `/api/experience`;
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-    const data = await res.json();
+    setLoading(true);
+    try {
+      let res;
+      if (isEdit) {
+        res = await updateExperience(initial?._id!, values);
+      } else {
+        res = await createExperience(values);
+      }
 
-    if (!res.ok) {
-      alert(data?.message ?? "Failed to save experience");
-      return;
+      toast.success(res?.message || "Success");
+      onSubmitOverride?.(values);
+      router.refresh(); // 🔁 refetch server data for this page
+    } catch (error: any) {
+      const mssg =
+        error?.response?.data?.message ?? "Creating Experience failed";
+
+      toast.error(mssg);
+    } finally {
+      setLoading(false);
     }
-
-    onSuccess?.(data?.data ?? data);
-    if (!isEdit) reset(defaults);
   };
 
   return (
@@ -182,7 +210,11 @@ export default function ExperienceForm({
             className="btn btn-primary"
             disabled={isSubmitting}
           >
-            {submitLabel ?? labels?.submit ?? (isEdit ? "Update" : "Create")}
+            {loading
+              ? isEdit
+                ? "Updating..."
+                : "Creating..."
+              : submitLabel ?? labels?.submit ?? (isEdit ? "Update" : "Create")}
           </button>
         </div>
       </div>
@@ -266,6 +298,7 @@ export default function ExperienceForm({
                 validate: (v) =>
                   !isNaN(new Date(v).getTime()) || "Enter a valid date.",
               })}
+              // defaultValue={defaults?.startDate ?? ""}
             />
             <Err path="startDate" />
           </div>
@@ -376,6 +409,7 @@ export default function ExperienceForm({
                       )
                     }
                     placeholder="react, next.js, node"
+                    defaultValue={fields[i]?.technologies?.join(", ") ?? ""}
                     rows={4}
                     cols={4}
                   />
@@ -396,6 +430,7 @@ export default function ExperienceForm({
                     placeholder="auth, dashboard, charts"
                     rows={4}
                     cols={4}
+                    defaultValue={fields[i]?.features?.join(", ") ?? ""}
                   />
                 </div>
               </div>
@@ -421,10 +456,14 @@ export function ExperienceCreateModal({
   open,
   onClose,
   onCreate,
+  loading,
+  setLoading,
 }: {
   open: boolean;
   onClose: () => void;
   onCreate: (v: ExperienceFormValues) => Promise<void> | void;
+  loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   return (
     <Modal
@@ -437,9 +476,11 @@ export function ExperienceCreateModal({
       <ExperienceForm
         submitLabel="Create"
         onSubmitOverride={async (v) => {
-          await onCreate(v);
+          // await onCreate(v);
           onClose();
         }}
+        loading={loading}
+        setLoading={setLoading}
       />
     </Modal>
   );
@@ -450,11 +491,15 @@ export function ExperienceUpdateModal({
   onClose,
   initial,
   onUpdate,
+  loading,
+  setLoading,
 }: {
   open: boolean;
   onClose: () => void;
   initial: ExperienceFormValues & { _id?: string };
   onUpdate: (v: ExperienceFormValues) => Promise<void> | void;
+  loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   return (
     <Modal open={open} onClose={onClose} size="lg" title="Update Experience">
@@ -462,9 +507,11 @@ export function ExperienceUpdateModal({
         initial={initial}
         submitLabel="Update"
         onSubmitOverride={async (v) => {
-          await onUpdate(v);
+          // await onUpdate(v);
           onClose();
         }}
+        loading={loading}
+        setLoading={setLoading}
       />
     </Modal>
   );
@@ -475,12 +522,36 @@ export function ExperienceDeleteModal({
   onClose,
   label,
   onDelete,
+  expId,
 }: {
   open: boolean;
   onClose: () => void;
   label: string;
   onDelete: () => Promise<void> | void;
+  expId: string;
 }) {
+  const [loading, setLoading] = React.useState(false);
+  const router = useRouter();
+
+  const handleDelete = async () => {
+    try {
+      setLoading(true);
+
+      const res = await deleteExperience(expId);
+
+      toast.success(res?.message ?? "Experience deleted successfully");
+      router.refresh();
+      onClose();
+    } catch (error: any) {
+      const msg = error?.response?.data?.message ?? "Deleting failed";
+      toast.error(msg);
+
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Modal
       open={open}
@@ -496,12 +567,12 @@ export function ExperienceDeleteModal({
           </button>
           <button
             onClick={async () => {
-              await onDelete();
-              onClose();
+              await handleDelete();
             }}
             className="btn rounded-lg bg-danger-500 text-white hover:brightness-110"
+            disabled={loading}
           >
-            Delete
+            {loading ? "Deleting..." : "Delete"}
           </button>
         </>
       }

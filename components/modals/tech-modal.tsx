@@ -2,27 +2,28 @@
 
 import * as React from "react";
 import Modal from "@/components/ui/modal";
-// import { ProjectFormValues } from "@/types";
-import ProjectForm, { ProjectFormValues } from "../admin/projects/form";
+import TechnologyForm, {
+  TechnologyFormValues,
+} from "../admin/technology/tech-form";
 
-export function ProjectCreateModal({
+export function TechnologyCreateModal({
   open,
   onClose,
   onCreate,
 }: {
   open: boolean;
   onClose: () => void;
-  onCreate: (v: ProjectFormValues) => Promise<void> | void;
+  onCreate: (v: TechnologyFormValues) => Promise<void> | void;
 }) {
   return (
     <Modal
       open={open}
       onClose={onClose}
-      size="lg"
-      title="Create Project"
-      description="Add a new project."
+      size="md"
+      title="Create Technology"
+      description="Add a new technology."
     >
-      <ProjectForm
+      <TechnologyForm
         submitLabel="Create"
         onSubmitOverride={async (v) => {
           await onCreate(v);
@@ -33,7 +34,7 @@ export function ProjectCreateModal({
   );
 }
 
-export function ProjectDeleteModal({
+export function TechnologyDeleteModal({
   open,
   onClose,
   label,
@@ -41,7 +42,7 @@ export function ProjectDeleteModal({
 }: {
   open: boolean;
   onClose: () => void;
-  label: string; // project title
+  label: string; // technology name
   onDelete: () => Promise<void> | void;
 }) {
   return (
@@ -49,7 +50,7 @@ export function ProjectDeleteModal({
       open={open}
       onClose={onClose}
       size="sm"
-      title="Delete Project?"
+      title="Delete Technology?"
       description={`This will permanently remove "${label}". You can’t undo this.`}
       footer={
         <>

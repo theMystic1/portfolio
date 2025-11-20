@@ -3,7 +3,11 @@
 import React, { ChangeEvent, FormEvent, useState } from "react";
 import Link from "next/link";
 import Button from "@/components/btn";
-
+import { loginUser, registerUser } from "@/backend/lib/apii";
+import toast from "react-hot-toast";
+import ClipLoader from "react-spinners";
+import { saveToken } from "@/backend/lib/helpers";
+import { useRouter } from "next/navigation";
 // Shared Auth Layout Component
 function AuthLayout({
   title,
@@ -31,6 +35,7 @@ export function SignupPage() {
   }>({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -42,16 +47,24 @@ export function SignupPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      // const res = await fetch("/api/auth/register", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(form),
+      // });
 
-      const data = await res.json();
-      if (!data.ok) setError(data.message);
-    } catch (err) {
-      setError("Something went wrong");
+      const res = await registerUser(form);
+
+      toast.success(res?.message || "Account created successfully");
+
+      await saveToken(res?.token);
+      console.log(res);
+      // if (!data.ok) setError(data.message);
+
+      router?.replace("/admin-overview");
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Signup failed");
+      toast.error(err?.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
     }
@@ -95,16 +108,22 @@ export function SignupPage() {
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
 
-        <Button variant="amber" className="w-full">
-          Register
+        <Button
+          variant="amber"
+          className={`${
+            loading ? "bg-ink-500! cursor-not-allowed" : ""
+          } w-full`}
+          disabled={loading}
+        >
+          {loading ? "Registering..." : "Register"}
         </Button>
 
-        <p className="text-center text-sm mt-3">
+        {/* <p className="text-center text-sm mt-3">
           Already have an account?{" "}
           <Link href="/admin-login" className="font-semibold">
             Sign in
           </Link>
-        </p>
+        </p> */}
       </form>
     </AuthLayout>
   );
@@ -118,6 +137,7 @@ export function SigninPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -129,16 +149,18 @@ export function SigninPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const res = await loginUser(form);
 
-      const data = await res.json();
-      if (!data.ok) setError(data.message);
-    } catch (err) {
-      setError("Something went wrong");
+      await saveToken(res?.token);
+
+      router?.replace("/admin-overview");
+
+      toast.success(res?.message || "Login successfull");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? "Something went wrong";
+      setError(msg);
+
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -171,16 +193,21 @@ export function SigninPage() {
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
 
-        <Button variant="aurora" className="w-full">
-          Login
+        <Button
+          variant="aurora"
+          className={`${
+            loading ? "bg-ink-500! cursor-not-allowed" : ""
+          } w-full`}
+        >
+          {loading ? "Loading..." : "Login"}
         </Button>
 
-        <p className="text-center text-sm mt-3">
+        {/* <p className="text-center text-sm mt-3">
           Don't have an account?{" "}
           <Link href="/admin-register" className="font-semibold">
             Sign up
           </Link>
-        </p>
+        </p> */}
       </form>
     </AuthLayout>
   );

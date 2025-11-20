@@ -22,11 +22,12 @@ import {
   UpdateTechnologyResponse,
 } from "@/types";
 import { post, get, del, patch } from "./api-client";
+import { ExperienceFormValues } from "@/components/modals/experience-modal";
 
 /* ---------- Experience API ---------- */
 
-export async function createExperience(payload: ExperiencePayload) {
-  return post<ExperiencePayload, CreateExperienceResponse>(
+export async function createExperience(payload: ExperienceFormValues) {
+  return post<ExperienceFormValues, CreateExperienceResponse>(
     "/api/experience",
     payload
   );
@@ -42,9 +43,9 @@ export async function fetchExperienceById(id: string) {
 
 export async function updateExperience(
   id: string,
-  payload: Partial<ExperiencePayload>
+  payload: Partial<ExperienceFormValues>
 ) {
-  return patch<Partial<ExperiencePayload>, UpdateExperienceResponse>(
+  return patch<Partial<ExperienceFormValues>, UpdateExperienceResponse>(
     `/api/experience/${id}`,
     payload
   );

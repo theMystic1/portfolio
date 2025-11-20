@@ -1,4 +1,3 @@
-// components/admin/badge.tsx
 "use client";
 
 import clsx from "clsx";

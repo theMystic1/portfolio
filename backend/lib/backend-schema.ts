@@ -33,13 +33,21 @@ export const experienceSchema = new Schema(
     endDate: {
       type: Date,
       validate: {
-        validator(this: any, value?: Date) {
-          if (!value) return true;
-          return value >= this.startDate;
+        validator: function (this: any, value?: Date) {
+          if (!value) return true; // allow empty endDate
+          const start =
+            this.startDate instanceof Date
+              ? this.startDate
+              : new Date(this.startDate);
+          const end = value instanceof Date ? value : new Date(value);
+
+          if (isNaN(start.getTime())) return true; // or return false if startDate is required
+          return end.getTime() >= start.getTime();
         },
         message: "End date cannot be before start date",
       },
     },
+
     isCurrent: { type: Boolean, default: false },
   },
   { timestamps: true, versionKey: false }
@@ -76,5 +84,5 @@ export const projectsSchema = new Schema(
   },
   { timestamps: true, versionKey: false }
 );
-
+2;
 export type Bucket = "day" | "week" | "month" | "quarter" | "year";

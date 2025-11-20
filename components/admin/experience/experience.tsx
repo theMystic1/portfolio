@@ -60,7 +60,7 @@ const MOCK: Experience[] = [
   },
 ];
 
-export default function ExperienceAdminPage() {
+export default function ExperienceAdminPage({ exps }: { exps: any[] }) {
   const [rows, setRows] = React.useState<Experience[]>(MOCK);
   const [open, setOpen] = React.useState({
     edit: false,
@@ -69,6 +69,9 @@ export default function ExperienceAdminPage() {
   });
 
   const [exp, setExp] = React.useState<any>();
+  const [loading, setLoading] = React.useState(false);
+
+  // console.log(exps);
 
   const handleOpen = (type: "edit" | "create" | "delete") =>
     setOpen((prv) => ({ ...prv, [type]: true }));
@@ -86,6 +89,8 @@ export default function ExperienceAdminPage() {
         }}
         onUpdate={() => {}}
         initial={exp}
+        loading={loading}
+        setLoading={setLoading}
       />
       <ExperienceCreateModal
         open={open?.create}
@@ -94,6 +99,8 @@ export default function ExperienceAdminPage() {
           setExp(null);
         }}
         onCreate={() => {}}
+        loading={loading}
+        setLoading={setLoading}
       />
       <ExperienceDeleteModal
         open={open?.delete}
@@ -103,6 +110,7 @@ export default function ExperienceAdminPage() {
         }}
         onDelete={() => {}}
         label="Delete"
+        expId={exp?._id}
       />
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -123,13 +131,16 @@ export default function ExperienceAdminPage() {
 
       {/* Table */}
       <ExperienceTable
-        data={rows}
+        data={exps}
         onView={(r) => alert(`View: ${r.role}`)}
         onEdit={(r) => {
           handleOpen("edit");
           setExp(r);
         }}
-        onDelete={(r) => handleOpen("delete")}
+        onDelete={(r) => {
+          handleOpen("delete");
+          setExp(r);
+        }}
       />
     </div>
   );

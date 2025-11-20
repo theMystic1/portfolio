@@ -6,6 +6,10 @@ import * as React from "react";
 import Button from "@/components/btn";
 import { Project } from "@/types";
 import ProjectTable from "./project-table";
+import {
+  ProjectCreateModal,
+  ProjectDeleteModal,
+} from "@/components/modals/project-modal";
 
 const MOCK_PROJECTS: Project[] = [
   {
@@ -39,9 +43,47 @@ const MOCK_PROJECTS: Project[] = [
 
 export default function ProjectsAdminPage() {
   const [rows, setRows] = React.useState<Project[]>(MOCK_PROJECTS);
+  const [open, setOpen] = React.useState({
+    edit: false,
+    create: false,
+    delete: false,
+  });
+
+  const [exp, setExp] = React.useState<any>();
+
+  const handleOpen = (type: "edit" | "create" | "delete") =>
+    setOpen((prv) => ({ ...prv, [type]: true }));
+  const handleClose = (type: "edit" | "create" | "delete") =>
+    setOpen((prv) => ({ ...prv, [type]: false }));
 
   return (
     <div className="space-y-6">
+      {/* <ProjectUpdateModal
+        open={open?.edit}
+        onClose={() => {
+          handleClose("edit");
+          setExp(null);
+        }}
+        onUpdate={() => {}}
+        initial={exp}
+      /> */}
+      <ProjectCreateModal
+        open={open?.create}
+        onClose={() => {
+          handleClose("create");
+          setExp(null);
+        }}
+        onCreate={() => {}}
+      />
+      <ProjectDeleteModal
+        open={open?.delete}
+        onClose={() => {
+          handleClose("delete");
+          setExp(null);
+        }}
+        onDelete={() => {}}
+        label="Delete"
+      />
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl">Projects</h1>
@@ -50,10 +92,7 @@ export default function ProjectsAdminPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="goldGradient"
-            onClick={() => alert("Open create project drawer")}
-          >
+          <Button variant="goldGradient" onClick={() => handleOpen("create")}>
             + Add Project
           </Button>
           <Button variant="surface" onClick={() => alert("Import CSV")}>
@@ -66,9 +105,7 @@ export default function ProjectsAdminPage() {
         data={rows}
         onView={(r) => alert(`View: ${r.title}`)}
         onEdit={(r) => alert(`Edit: ${r.title}`)}
-        onDelete={(r) =>
-          setRows((all) => all.filter((x) => (x._id ?? "") !== (r._id ?? "")))
-        }
+        onDelete={(r) => handleOpen("delete")}
       />
     </div>
   );

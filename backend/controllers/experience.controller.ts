@@ -135,6 +135,8 @@ export const updateExperience = async (
     const user = getUserFromRequest(req);
     if (!user) return unauthorizedResponse();
 
+    // console.log(id);
+
     await dbConnect();
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -146,27 +148,27 @@ export const updateExperience = async (
 
     const data = await req.json();
 
-    // Prevent overriding _id if it comes in body
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, ...updateData } = data;
 
-    const experience = await Experience.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    }).lean();
-
-    if (!experience) {
+    const doc = await Experience.findById(id);
+    if (!doc) {
       return NextResponse.json(
         { ok: false, message: "Experience not found" },
         { status: 404 }
       );
     }
 
+    // Merge user payload into the doc
+    Object.assign(doc, data);
+
+    // This runs schema validators with proper doc context
+    await doc.save();
+
     return NextResponse.json(
       {
         ok: true,
         message: "Experience updated successfully",
-        experience,
+        experience: doc,
       },
       { status: 200 }
     );

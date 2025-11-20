@@ -17,12 +17,16 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  return updateExperience(req, params.id);
+  const id = await params;
+  console.log(params?.id);
+  return updateExperience(req, id.id);
 }
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  return deleteExperience(req, params.id);
+  const par = await params;
+
+  return deleteExperience(req, par.id);
 }

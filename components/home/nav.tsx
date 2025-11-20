@@ -4,8 +4,11 @@ import * as React from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import Image from "next/image";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
+import logo from "@/app/icon.png";
+import InitialsLogo from "../ui/initials-logo";
 
 type MenuItem = { label: string; href: string; accent: string };
 
@@ -234,7 +237,9 @@ const HeaderNav: React.FC = () => {
         className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-6xl z-50 rounded-xl py-3 px-4 bg-surface/40 border border-soft supports-backdrop-filter:backdrop-blur-md min-h-12"
       >
         <div className="mx-auto flex items-center justify-between gap-4">
-          <h1 className="logo-mark select-none">MR CLU</h1>
+          <div className="logo-mark select-none">
+            <InitialsLogo />
+          </div>
 
           {/* Desktop menu */}
           <div

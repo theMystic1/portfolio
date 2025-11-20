@@ -120,7 +120,7 @@ export default function TechnologyForm({
       {/* Card */}
       <div className="card">
         <h3 className="font-display text-lg mb-3">Details</h3>
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-1 gap-4">
           <div className="md:col-span-1">
             <label className="block text-sm text-ink-300">Name</label>
             <input

@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import ImagePicker from "@/components/ui/image-picker";
 import { validateProject } from "@/lib/validator";
 
 export type ProjectFormValues = {
@@ -9,7 +10,8 @@ export type ProjectFormValues = {
   description?: string | null;
   technologies: string[];
   features: string[];
-  coverImage: string;
+  /** accept either a URL string OR a File picked from the ImagePicker */
+  coverImage: string | File | null;
 };
 
 type ProjectFormProps = {
@@ -37,7 +39,7 @@ export default function ProjectForm({
     description: initial?.description ?? "",
     technologies: initial?.technologies ?? [],
     features: initial?.features ?? [],
-    coverImage: initial?.coverImage ?? "",
+    coverImage: initial?.coverImage ?? null, // <-- allow null/File/string
   };
 
   const {
@@ -47,6 +49,8 @@ export default function ProjectForm({
     setValue,
     reset,
     setError,
+    control, // <-- needed by Controller
+    getValues,
   } = useForm<ProjectFormValues>({
     defaultValues: defaults,
     mode: "onBlur",
@@ -66,8 +70,26 @@ export default function ProjectForm({
       .map((s) => s.trim())
       .filter(Boolean);
 
+  // Optional: upload File to get a URL before saving
+  async function uploadIfFile(
+    maybeFile: string | File | null
+  ): Promise<string | null> {
+    if (!maybeFile) return null;
+    if (typeof maybeFile === "string") return maybeFile;
+
+    // Example FormData upload to your API route (implement /api/upload)
+    const fd = new FormData();
+    fd.append("file", maybeFile);
+
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    if (!res.ok) throw new Error("Failed to upload cover image");
+    const data = await res.json(); // expect { url: "https://..." }
+    return data.url as string;
+  }
+
   const onSubmit = async (values: ProjectFormValues) => {
-    const { valid, errors: vErrs } = validateProject(values);
+    // Validate (update your validateProject to allow File|null)
+    const { valid, errors: vErrs } = validateProject(values as any);
     if (!valid) {
       Object.entries(vErrs).forEach(([k, msg]) => {
         setError(k as any, { type: "manual", message: String(msg) });
@@ -76,8 +98,25 @@ export default function ProjectForm({
       return;
     }
 
+    // If the coverImage is a File, upload to get URL
+    let coverUrl: string | null = null;
+    try {
+      coverUrl = await uploadIfFile(values.coverImage);
+    } catch (e: any) {
+      setError("coverImage", {
+        type: "manual",
+        message: e?.message ?? "Upload failed",
+      });
+      return;
+    }
+
+    const payload = {
+      ...values,
+      coverImage: coverUrl, // backend expects a URL string
+    };
+
     if (onSubmitOverride) {
-      await onSubmitOverride(values);
+      await onSubmitOverride(payload as ProjectFormValues);
       return;
     }
 
@@ -89,7 +128,7 @@ export default function ProjectForm({
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
 
@@ -145,14 +184,19 @@ export default function ProjectForm({
           </div>
 
           <div>
-            <label className="block text-sm text-ink-300">
-              Cover image URL
-            </label>
-            <input
-              className="w-full rounded-lg bg-surface border border-white/10 p-2"
-              {...register("coverImage", {
-                required: "Cover image is required.",
-              })}
+            <label className="block text-sm text-ink-300">Cover image</label>
+            <Controller
+              name="coverImage"
+              control={control}
+              render={({ field }) => (
+                <ImagePicker
+                  label=""
+                  aspect="wide"
+                  value={field.value} // File | string | null
+                  onChange={(v) => field.onChange(v)}
+                  onError={(m) => alert(m)}
+                />
+              )}
             />
             <Err path="coverImage" />
           </div>
@@ -170,7 +214,8 @@ export default function ProjectForm({
             <label className="block text-sm text-ink-300">
               Technologies (comma-separated)
             </label>
-            <input
+            <textarea
+              rows={4}
               className="w-full rounded-lg bg-surface border border-white/10 p-2"
               onBlur={(e) => setValue("technologies", parseCsv(e.target.value))}
               placeholder="react, next.js, node"
@@ -181,7 +226,8 @@ export default function ProjectForm({
             <label className="block text-sm text-ink-300">
               Features (comma-separated)
             </label>
-            <input
+            <textarea
+              rows={4}
               className="w-full rounded-lg bg-surface border border-white/10 p-2"
               onBlur={(e) => setValue("features", parseCsv(e.target.value))}
               placeholder="auth, dashboard, charts"

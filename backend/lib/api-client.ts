@@ -14,7 +14,7 @@ export function getAuthToken() {
 
 // Create a pre-configured axios instance
 const apiClient: AxiosInstance = axios.create({
-  baseURL: "/", // calling Next.js API routes like "/api/..."
+  baseURL: process.env.NEXT_PUBLIC_BASE_URL!, // calling Next.js API routes like "/api/..."
   withCredentials: false,
 });
 
