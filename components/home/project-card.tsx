@@ -4,6 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import clsx from "clsx";
 import Link from "next/link";
+import { ProjectDocument } from "@/types";
 
 export type TechTag = { label: string };
 
@@ -18,13 +19,22 @@ export type Project = {
 };
 
 type Props = {
-  project: Project;
+  project: ProjectDocument;
   className?: string;
 };
 
 export function ProjectCard({ project, className }: Props) {
-  const { title, image, tags, problem, solution, result, href } = project;
+  const {
+    title,
+    coverImage: image,
+    technologies,
+    description,
+    features,
+    liveUrl,
+    githubUrl,
+  } = project;
 
+  console.log(project);
   return (
     <article
       className={clsx(
@@ -50,7 +60,7 @@ export function ProjectCard({ project, className }: Props) {
           alt={title}
           width={1200}
           height={750}
-          className="relative z-10 block h-auto w-full object-cover"
+          className="relative z-10 block h-45 w-full object-cover"
           priority={false}
         />
 
@@ -69,12 +79,12 @@ export function ProjectCard({ project, className }: Props) {
             {title}
           </h3>
           <div className="mt-2 flex flex-wrap gap-2">
-            {tags.map((t) => (
+            {technologies?.map((t) => (
               <span
-                key={t.label}
+                key={t}
                 className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-ink-100/90 backdrop-blur"
               >
-                {t.label}
+                {t}
               </span>
             ))}
           </div>
@@ -83,20 +93,25 @@ export function ProjectCard({ project, className }: Props) {
 
       {/* lower content */}
       <div className="relative z-10 px-5 pb-6">
-        <InfoBlock label="Problem" text={problem} />
-        <InfoBlock label="Solution" text={solution} className="mt-4" />
-        <InfoBlock label="Result" text={result} className="mt-4" />
-
-        {href ? (
+        <InfoBlock label="Description" text={description!} />
+        <InfoBlock
+          label="Features"
+          text={features?.join(" ,  ") ?? ""}
+          className="mt-4"
+        />
+        <InfoBlock label="Links" text={""} className="mt-4" />
+        {liveUrl ? (
           <Link
-            href={href}
+            href={liveUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gold-gradient px-4 py-2 text-sm font-medium text-black shadow-gold transition hover:shadow-gold-lg"
           >
             View Case Study
           </Link>
-        ) : null}
+        ) : (
+          <p className="p-4 text-gold-500 text-2xl">Withheld</p>
+        )}
       </div>
     </article>
   );
@@ -116,7 +131,9 @@ function InfoBlock({
       <div className="text-[11px] uppercase tracking-wide text-ink-500">
         {label}
       </div>
-      <p className="mt-1 text-[13px] leading-6 text-ink-100/90">{text}</p>
+      <p className="mt-1 text-[13px] leading-6 text-ink-100/90 capitalize">
+        {text}
+      </p>
     </div>
   );
 }

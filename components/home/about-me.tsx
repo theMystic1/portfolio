@@ -112,7 +112,7 @@ const AboutMe: React.FC = () => {
           ref={subtitleRef}
           className="text-ink-300 text-3xl text-center font-display"
         >
-          <span className="text-amber-500">Passionate Web Developer</span>{" "}
+          <span className="text-amber-500">Passionate Software Developer</span>{" "}
           forging blazing-fast digital experiences with precision and
           creativity.
         </p>

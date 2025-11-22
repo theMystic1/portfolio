@@ -156,7 +156,7 @@ function NavList({
               "group flex items-center gap-3 rounded-lg border px-3 py-2 text-sm transition",
               active
                 ? "border-amber-600/50 bg-white/8 text-white"
-                : "border-white/10 bg-white/[0.04] text-ink-300 hover:bg-white/[0.08] hover:text-ink-100"
+                : "border-white/10 bg-white/4 text-ink-300 hover:bg-white/8 hover:text-ink-100"
             )}
           >
             <Icon

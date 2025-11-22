@@ -1,32 +1,23 @@
-// app/api/technologies/[id]/route.ts
 import {
   deleteExperience,
   getExperienceById,
   updateExperience,
 } from "@/backend/controllers/experience.controller";
+import { Ctx } from "@/types";
 import { NextRequest } from "next/server";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  return getExperienceById(params.id);
+export async function GET(_req: NextRequest, ctx: Ctx) {
+  const par = await ctx.params;
+  return getExperienceById(par.id);
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const id = await params;
-  console.log(params?.id);
+export async function PATCH(req: NextRequest, ctx: Ctx) {
+  const id = await ctx.params;
   return updateExperience(req, id.id);
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const par = await params;
+export async function DELETE(req: NextRequest, ctx: Ctx) {
+  const par = await ctx.params;
 
   return deleteExperience(req, par.id);
 }

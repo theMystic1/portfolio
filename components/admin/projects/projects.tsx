@@ -9,7 +9,12 @@ import ProjectTable from "./project-table";
 import {
   ProjectCreateModal,
   ProjectDeleteModal,
+  ProjectUpdateModal,
 } from "@/components/modals/project-modal";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { createBulkProject } from "@/backend/lib/apii";
+import { projectSeed } from "@/backend/lib/constants";
 
 const MOCK_PROJECTS: Project[] = [
   {
@@ -41,7 +46,7 @@ const MOCK_PROJECTS: Project[] = [
   },
 ];
 
-export default function ProjectsAdminPage() {
+export default function ProjectsAdminPage({ projects }: { projects: any }) {
   const [rows, setRows] = React.useState<Project[]>(MOCK_PROJECTS);
   const [open, setOpen] = React.useState({
     edit: false,
@@ -50,6 +55,31 @@ export default function ProjectsAdminPage() {
   });
 
   const [exp, setExp] = React.useState<any>();
+  // console.log(projects);
+
+  const [loading, setLoading] = React.useState(false);
+  const router = useRouter();
+  const handleSeedExperiences = async () => {
+    try {
+      setLoading(true);
+      toast.loading("Seeding projects....");
+
+      const res = await createBulkProject(projectSeed);
+
+      toast.remove();
+      toast.success(res?.message ?? "Seeding completed");
+
+      router?.refresh();
+    } catch (error: any) {
+      const errMsg =
+        error?.response?.data?.message ?? "projects seeding failed";
+      console.error(error);
+      toast.remove();
+      toast.error(errMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOpen = (type: "edit" | "create" | "delete") =>
     setOpen((prv) => ({ ...prv, [type]: true }));
@@ -58,22 +88,23 @@ export default function ProjectsAdminPage() {
 
   return (
     <div className="space-y-6">
-      {/* <ProjectUpdateModal
+      <ProjectUpdateModal
         open={open?.edit}
         onClose={() => {
           handleClose("edit");
           setExp(null);
         }}
-        onUpdate={() => {}}
+        // onUpdate={() => {}}
         initial={exp}
-      /> */}
+        projectId={exp?._id}
+      />
       <ProjectCreateModal
         open={open?.create}
         onClose={() => {
           handleClose("create");
           setExp(null);
         }}
-        onCreate={() => {}}
+        // onCreate={() => {}}
       />
       <ProjectDeleteModal
         open={open?.delete}
@@ -81,7 +112,8 @@ export default function ProjectsAdminPage() {
           handleClose("delete");
           setExp(null);
         }}
-        onDelete={() => {}}
+        // onDelete={() => {}}
+        projectId={exp?._id}
         label="Delete"
       />
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -95,17 +127,26 @@ export default function ProjectsAdminPage() {
           <Button variant="goldGradient" onClick={() => handleOpen("create")}>
             + Add Project
           </Button>
-          <Button variant="surface" onClick={() => alert("Import CSV")}>
-            Import
+          <Button variant="surface" onClick={handleSeedExperiences}>
+            {loading ? "Seeding projects...." : "Seed projects"}
           </Button>
         </div>
       </div>
 
       <ProjectTable
-        data={rows}
-        onView={(r) => alert(`View: ${r.title}`)}
-        onEdit={(r) => alert(`Edit: ${r.title}`)}
-        onDelete={(r) => handleOpen("delete")}
+        data={projects}
+        onView={(r) => {
+          handleOpen("delete");
+          setExp(r);
+        }}
+        onEdit={(r) => {
+          handleOpen("edit");
+          setExp(r);
+        }}
+        onDelete={(r) => {
+          handleOpen("delete");
+          setExp(r);
+        }}
       />
     </div>
   );

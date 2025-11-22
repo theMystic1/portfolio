@@ -16,11 +16,12 @@ type Props = {
 };
 
 export default function ContactSection({
-  email = "you@example.com",
-  phone = "+234 000 000 0000",
+  email = "cluckyugo@gmail.com",
+  phone = "+234 8146062722",
   blurb = "Have a project in mind or want to collaborate? Feel free to reach out — I’m always open to discussing new opportunities.",
 }: Props) {
   const sectionRef = React.useRef<HTMLElement | null>(null);
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   // Entrance: section fades at ~15% viewport, then items stagger
   useGSAP(
@@ -83,16 +84,39 @@ export default function ContactSection({
 
   // very light client submit (replace with your API)
   const [submitting, setSubmitting] = React.useState(false);
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitting(true);
-    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
-    console.log("Contact form:", data); // wire to /api/contact
-    await new Promise((r) => setTimeout(r, 800));
-    setSubmitting(false);
-    e.currentTarget.reset();
-    alert("Thanks! I’ll get back to you shortly.");
-  };
+    const fd = new FormData(e.currentTarget);
+
+    const name = String(fd.get("name") || "").trim();
+    const email = String(fd.get("email") || "").trim();
+    const subject = String(fd.get("subject") || "").trim();
+    const message = String(fd.get("message") || "").trim();
+
+    // Build the body with CRLF line breaks (better cross-client support)
+    const body = [`From: ${name} <${email}>`, "", message].join("\r\n");
+
+    // Use URLSearchParams to safely encode subject/body (and optional cc/bcc)
+    const params = new URLSearchParams();
+    if (subject) params.set("subject", subject);
+    if (body) params.set("body", body);
+
+    // Optional:
+    // params.set("cc", email);  // cc the sender (if you want)
+    // params.set("bcc", "archive@yourdomain.com");
+
+    const href = `mailto:${encodeURIComponent(email)}?${params.toString()}`;
+
+    // Open the mail client
+    window.location.href = href;
+
+    // …then clear the inputs
+    requestAnimationFrame(() => {
+      // either approach works:
+      // e.currentTarget.reset();
+      formRef.current?.reset();
+    });
+  }
 
   return (
     <section
@@ -175,6 +199,7 @@ export default function ContactSection({
 
         {/* Right: form */}
         <form
+          ref={formRef}
           onSubmit={onSubmit}
           className="contact-stagger rounded-3xl border border-white/10 bg-surface/80 p-6 backdrop-blur-sm"
         >

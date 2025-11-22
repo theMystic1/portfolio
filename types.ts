@@ -168,6 +168,8 @@ export interface ProjectPayload {
   technologies?: string[];
   features?: string[];
   coverImage: string;
+  liveUrl?: string;
+  githubUrl?: string;
 }
 
 export interface ProjectDocument extends ProjectPayload {
@@ -272,3 +274,62 @@ export type ExperienceFormProps = {
     submit?: string;
   };
 };
+
+// Bucketing you already use server-side
+export type Bucket = "day" | "week" | "month" | "quarter" | "year";
+
+// Fixed work-mix categories found in the payload
+export type WorkCategory = "React/Next" | "Mobile (RN)" | "Node/API" | "Other";
+
+export interface OverviewKPIs {
+  projects: number;
+  technologies: number;
+  roles: number;
+  activeThisMonth: number;
+  currentRole: string | null;
+}
+
+export type WorkMix = Record<WorkCategory, number>;
+
+export interface TopTechnology {
+  label: string;
+  value: number;
+}
+
+export interface TimelinePoint {
+  bucket: string; // e.g. "2025-11" (keep generic string for flexibility)
+  count: number;
+}
+
+export interface RecentProject {
+  title: string;
+  createdAt: string; // ISO timestamp string in the response
+  technologies: string[];
+  coverImage: string;
+}
+
+export interface OverviewData {
+  kpis: OverviewKPIs;
+  workMix: WorkMix;
+  topTechnologies: TopTechnology[];
+  timeline: TimelinePoint[];
+  recent: RecentProject[];
+}
+
+export interface OverviewMeta {
+  range: { start?: string; end?: string }; // can be empty
+  bucket: Bucket;
+  topLimit: number;
+  generatedAt: string; // ISO timestamp string
+}
+
+export interface OverviewResponse {
+  ok: true;
+  data: OverviewData;
+  meta: OverviewMeta;
+}
+
+// Optional: error shape if you also return failures from the same route
+export type OverviewApiResponse = OverviewResponse;
+
+export type Ctx = { params: Promise<{ id: string }> };

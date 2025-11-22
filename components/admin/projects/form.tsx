@@ -1,17 +1,23 @@
+// components/admin/projects/project-form.tsx
 "use client";
 
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 import ImagePicker from "@/components/ui/image-picker";
 import { validateProject } from "@/lib/validator";
+import { uploadToCloudinary } from "@/backend/lib/helpers"; // must return { secure_url | secureUrl | url }
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { createProject, updateProject } from "@/backend/lib/apii";
 
 export type ProjectFormValues = {
   title: string;
   description?: string | null;
   technologies: string[];
   features: string[];
-  /** accept either a URL string OR a File picked from the ImagePicker */
   coverImage: string | File | null;
+  githubUrl?: string;
+  liveUrl?: string;
 };
 
 type ProjectFormProps = {
@@ -20,8 +26,7 @@ type ProjectFormProps = {
   onSuccess?: (saved: any) => void;
   labels?: { title?: string; submit?: string };
   submitLabel?: string;
-  /** If provided, you handle submit; internal fetch is skipped. */
-  onSubmitOverride?: (values: ProjectFormValues) => Promise<void> | void;
+  onSubmitOverride?: (values: ProjectFormValues) => Promise<void> | void; // optional
 };
 
 export default function ProjectForm({
@@ -32,6 +37,7 @@ export default function ProjectForm({
   submitLabel,
   onSubmitOverride,
 }: ProjectFormProps) {
+  const router = useRouter();
   const isEdit = Boolean(projectId || initial?._id);
 
   const defaults: ProjectFormValues = {
@@ -39,7 +45,7 @@ export default function ProjectForm({
     description: initial?.description ?? "",
     technologies: initial?.technologies ?? [],
     features: initial?.features ?? [],
-    coverImage: initial?.coverImage ?? null, // <-- allow null/File/string
+    coverImage: initial?.coverImage ?? null,
   };
 
   const {
@@ -49,8 +55,7 @@ export default function ProjectForm({
     setValue,
     reset,
     setError,
-    control, // <-- needed by Controller
-    getValues,
+    control,
   } = useForm<ProjectFormValues>({
     defaultValues: defaults,
     mode: "onBlur",
@@ -70,74 +75,64 @@ export default function ProjectForm({
       .map((s) => s.trim())
       .filter(Boolean);
 
-  // Optional: upload File to get a URL before saving
-  async function uploadIfFile(
-    maybeFile: string | File | null
-  ): Promise<string | null> {
-    if (!maybeFile) return null;
-    if (typeof maybeFile === "string") return maybeFile;
-
-    // Example FormData upload to your API route (implement /api/upload)
-    const fd = new FormData();
-    fd.append("file", maybeFile);
-
-    const res = await fetch("/api/upload", { method: "POST", body: fd });
-    if (!res.ok) throw new Error("Failed to upload cover image");
-    const data = await res.json(); // expect { url: "https://..." }
-    return data.url as string;
+  async function ensureCoverUrl(ci: string | File | null) {
+    if (!ci) return "";
+    if (typeof ci === "string") return ci;
+    const up = await uploadToCloudinary(ci);
+    const url = up?.secure_url || up?.secureUrl || up?.url;
+    if (!url) throw new Error("Upload failed — no URL returned.");
+    return url;
   }
 
   const onSubmit = async (values: ProjectFormValues) => {
-    // Validate (update your validateProject to allow File|null)
+    // Client validation
     const { valid, errors: vErrs } = validateProject(values as any);
     if (!valid) {
       Object.entries(vErrs).forEach(([k, msg]) => {
         setError(k as any, { type: "manual", message: String(msg) });
       });
-      alert("Please fix the highlighted fields.");
+      toast.error("Please fix the highlighted fields.");
       return;
     }
 
-    // If the coverImage is a File, upload to get URL
-    let coverUrl: string | null = null;
-    try {
-      coverUrl = await uploadIfFile(values.coverImage);
-    } catch (e: any) {
+    if (!values?.coverImage) {
       setError("coverImage", {
         type: "manual",
-        message: e?.message ?? "Upload failed",
+        message: "Please select an Image",
       });
+      toast.error("Please fix the highlighted fields.");
       return;
     }
 
-    const payload = {
-      ...values,
-      coverImage: coverUrl, // backend expects a URL string
-    };
+    toast.loading(isEdit ? "updating project..." : "creating project...");
+    try {
+      // Only upload if a new File was selected
+      const coverImage = await ensureCoverUrl(values.coverImage);
 
-    if (onSubmitOverride) {
-      await onSubmitOverride(payload as ProjectFormValues);
-      return;
+      const payload = {
+        ...values,
+        coverImage, // backend expects a string URL
+      };
+      let res;
+      if (isEdit) {
+        res = await updateProject(projectId!, payload);
+      } else {
+        res = await createProject(payload);
+      }
+
+      console.log(res);
+
+      toast.remove();
+      toast.success(isEdit ? "Project updated" : "Project created");
+      // onSuccess?.(data?.data ?? data);
+      router.refresh();
+      onSubmitOverride?.(values);
+      if (!isEdit) reset(defaults);
+    } catch (e: any) {
+      toast.remove();
+      toast.error(e?.message || "Save failed");
+      setError("coverImage", { type: "manual", message: e?.message });
     }
-
-    const method = isEdit ? "PUT" : "POST";
-    const url = isEdit
-      ? `/api/projects/${projectId ?? initial?._id}`
-      : `/api/projects`;
-
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data?.message ?? "Failed to save project");
-      return;
-    }
-    onSuccess?.(data?.data ?? data);
-    if (!isEdit) reset(defaults);
   };
 
   return (
@@ -194,11 +189,28 @@ export default function ProjectForm({
                   aspect="wide"
                   value={field.value} // File | string | null
                   onChange={(v) => field.onChange(v)}
-                  onError={(m) => alert(m)}
+                  onError={(m) => toast.error(m)}
                 />
               )}
             />
             <Err path="coverImage" />
+          </div>
+
+          <div>
+            <label className="block text-sm text-ink-300">Github Url</label>
+            <input
+              className="w-full rounded-lg bg-surface border border-white/10 p-2"
+              {...register("githubUrl")}
+            />
+            <Err path="githubUrl" />
+          </div>
+          <div>
+            <label className="block text-sm text-ink-300">Live Link</label>
+            <input
+              className="w-full rounded-lg bg-surface border border-white/10 p-2"
+              {...register("liveUrl")}
+            />
+            <Err path="liveUrl" />
           </div>
 
           <div className="md:col-span-2">
@@ -206,7 +218,9 @@ export default function ProjectForm({
             <textarea
               className="w-full rounded-lg bg-surface border border-white/10 p-2"
               rows={3}
-              {...register("description")}
+              {...register("description", {
+                required: "Description is required.",
+              })}
             />
           </div>
 
@@ -219,6 +233,7 @@ export default function ProjectForm({
               className="w-full rounded-lg bg-surface border border-white/10 p-2"
               onBlur={(e) => setValue("technologies", parseCsv(e.target.value))}
               placeholder="react, next.js, node"
+              defaultValue={initial?.technologies?.join(", ")}
             />
           </div>
 
@@ -231,6 +246,7 @@ export default function ProjectForm({
               className="w-full rounded-lg bg-surface border border-white/10 p-2"
               onBlur={(e) => setValue("features", parseCsv(e.target.value))}
               placeholder="auth, dashboard, charts"
+              defaultValue={initial?.features?.join(", ")}
             />
           </div>
         </div>

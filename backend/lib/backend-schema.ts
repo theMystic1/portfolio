@@ -78,9 +78,13 @@ export const projectsSchema = new Schema(
     features: { type: [String], default: [] },
     coverImage: {
       type: String,
-      required: [true, "Cover image is missing"],
+
       trim: true,
+      default:
+        "https://res.cloudinary.com/dd6vokauv/image/upload/v1763645095/portfolio/mio7vtyf9efwls9c81dk.jpg",
     },
+    githubUrl: { type: String },
+    liveUrl: { type: String },
   },
   { timestamps: true, versionKey: false }
 );

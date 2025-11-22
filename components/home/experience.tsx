@@ -7,31 +7,15 @@ import { useGSAP } from "@gsap/react";
 import TimelineCard, { TimelineCardProps } from "./card";
 import { BsHouse } from "react-icons/bs";
 import { GiSpookyHouse } from "react-icons/gi";
+import { GetExperiencesResponse } from "@/types";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const ITEMS: TimelineCardProps[] = [
-  {
-    title: "Associate Software Engineer",
-    org: "Basel Dynamic Tech Solutions",
-    meta: "Present",
-    body: "Contributing to full-stack projects, working in Agile teams to build scalable applications with optimized UI/UX.",
-  },
-  {
-    title: "Freelancer – Web Developer",
-    org: "SVS Detailing Services",
-    meta: "2024",
-    body: "Delivered a clean, dynamic web presence with emphasis on performance and mobile experience.",
-  },
-  {
-    title: "Freelancer – Frontend Developer",
-    org: "SreeTeq Services",
-    meta: "2024",
-    body: "Responsive, interactive websites tailored to client needs using modern frontend technologies.",
-  },
-];
-
-export default function Experience() {
+export default function Experience({
+  experiences,
+}: {
+  experiences: GetExperiencesResponse;
+}) {
   const sectionRef = React.useRef<HTMLDivElement>(null);
   const spineRef = React.useRef<HTMLDivElement>(null);
 
@@ -92,6 +76,9 @@ export default function Experience() {
       );
   }, []);
 
+  const { experiences: myExperience } = experiences;
+
+  // console.log(myExperience);
   return (
     <section
       ref={sectionRef}
@@ -123,7 +110,7 @@ export default function Experience() {
 
       {/* Rows: 1 per item. Mobile: [spine gutter (2rem), card]; md+: [card | spine | card] */}
       <div className="relative flex flex-col gap-12 md:gap-24">
-        {ITEMS.map((item, i) => {
+        {myExperience.map((item, i) => {
           const isLeft = i % 2 === 0; // alternate on desktop
           return (
             <div
@@ -152,7 +139,8 @@ export default function Experience() {
                 <TimelineCard
                   ref={setCardRef(i)}
                   side={isLeft ? "left" : "right"}
-                  {...item}
+                  // {...item}
+                  data={item}
                 />
               </div>
             </div>

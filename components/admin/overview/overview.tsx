@@ -8,7 +8,7 @@ import DonutCard, { DonutSlice } from "@/components/admin/overview/donut-card";
 import BarColumnsCard, {
   BarDatum,
 } from "@/components/admin/overview/bar-columns-card";
-import { Project } from "@/types";
+import { OverviewApiResponse, Project } from "@/types";
 import ProjectTable from "../projects/project-table";
 
 // --- mock data (replace with API later) ---
@@ -24,8 +24,8 @@ const kpis = [
   {
     label: "Active This Month",
     value: 6,
-    delta: -1,
-    series: [7, 8, 8, 7, 6, 6],
+    delta: 9,
+    series: [7, 8, 8, 7, 6, 9],
   },
 ];
 
@@ -74,7 +74,11 @@ const RECENT: Project[] = [
   },
 ];
 
-export default function AdminOverviewPage() {
+export default function AdminOverviewPage({
+  overview,
+}: {
+  overview: OverviewApiResponse;
+}) {
   const rootRef = React.useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -111,6 +115,33 @@ export default function AdminOverviewPage() {
     },
     { scope: rootRef }
   );
+  // console.log(overview);
+
+  const { data } = overview;
+
+  // console.log(data);
+
+  const realMix = Object.entries(data?.workMix)?.map(([k, v], i) => ({
+    label: k,
+    value: v,
+    color: mix[i]?.color,
+  }));
+
+  type TopTech = { label: string; value: number };
+  type Bar = { color?: string };
+
+  const mixe = (bars ?? [])
+    .map((b: Bar) => b?.color)
+    .filter(Boolean) as string[]; // the color pool
+
+  const pickRandomFromMix = () => mixe[Math.floor(Math.random() * mixe.length)]; // may be undefined if mix empty
+
+  const realData = (data?.topTechnologies ?? []).map(
+    (tec: TopTech, i: number) => ({
+      ...tec,
+      color: bars?.[i]?.color ?? pickRandomFromMix(),
+    })
+  );
 
   return (
     <div ref={rootRef} className="space-y-8">
@@ -125,14 +156,14 @@ export default function AdminOverviewPage() {
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {kpis.map((k, i) => (
-          <div key={k.label} className="reveal-kpi">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {Object?.entries(data?.kpis).map(([k, v], i) => (
+          <div key={k} className="reveal-kpi">
             <KpiCard
-              label={k.label}
-              value={k.value}
-              delta={k.delta}
-              series={k.series}
+              label={k}
+              value={v}
+              delta={kpis[i]?.delta}
+              series={kpis[i]?.series}
             />
           </div>
         ))}
@@ -144,14 +175,14 @@ export default function AdminOverviewPage() {
           <DonutCard
             title="Work Mix"
             subtitle="By area of focus"
-            slices={mix}
+            slices={realMix}
           />
         </div>
         <div className="reveal-chart xl:col-span-2">
           <BarColumnsCard
             title="Top Technologies Used"
             subtitle="Count across projects"
-            data={bars}
+            data={realData}
             max={12}
           />
         </div>
@@ -164,7 +195,7 @@ export default function AdminOverviewPage() {
           <p className="text-dim text-sm">Latest updates in your portfolio.</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-surface/70 p-3">
-          <ProjectTable data={RECENT} />
+          <ProjectTable data={data?.recent} />
         </div>
       </div>
     </div>

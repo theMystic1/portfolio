@@ -63,7 +63,7 @@ export default function ProjectTable({
               sizes="64px"
             />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 max-w-[180px]">
             <div className="truncate text-ink-100 font-medium">{row.title}</div>
             <div className="truncate text-xs text-dim">
               {row.description ?? "—"}
@@ -71,7 +71,7 @@ export default function ProjectTable({
           </div>
         </div>
       ),
-      width: "28rem",
+      width: "20rem",
     },
     {
       key: "technologies",

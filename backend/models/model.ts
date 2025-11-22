@@ -11,9 +11,11 @@ export interface IProject {
   description?: string | null;
   technologies: string[];
   features: string[];
-  coverImage: string;
+  coverImage?: string;
   createdAt: Date;
   updatedAt: Date;
+  githubUrl?: string;
+  liveUrl?: string;
 }
 export interface ITechnology {
   name: string;

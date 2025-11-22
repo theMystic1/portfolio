@@ -12,6 +12,10 @@ import {
   ExperienceUpdateModal,
   ExperienceDeleteModal,
 } from "@/components/modals/experience-modal";
+import toast from "react-hot-toast";
+import { createBulkExperience } from "@/backend/lib/apii";
+import { experienceSeed } from "@/backend/lib/constants";
+import { useRouter } from "next/navigation";
 
 const MOCK: Experience[] = [
   {
@@ -70,13 +74,35 @@ export default function ExperienceAdminPage({ exps }: { exps: any[] }) {
 
   const [exp, setExp] = React.useState<any>();
   const [loading, setLoading] = React.useState(false);
-
+  const router = useRouter();
   // console.log(exps);
 
   const handleOpen = (type: "edit" | "create" | "delete") =>
     setOpen((prv) => ({ ...prv, [type]: true }));
   const handleClose = (type: "edit" | "create" | "delete") =>
     setOpen((prv) => ({ ...prv, [type]: false }));
+
+  const handleSeedExperiences = async () => {
+    try {
+      setLoading(true);
+      toast.loading("Seeding experience....");
+
+      const res = await createBulkExperience(experienceSeed);
+
+      toast.remove();
+      toast.success(res?.message ?? "Seeding completed");
+
+      router?.refresh();
+    } catch (error: any) {
+      const errMsg =
+        error?.response?.data?.message ?? "Experience seeding failed";
+      console.error(error);
+      toast.remove();
+      toast.error(errMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -123,8 +149,12 @@ export default function ExperienceAdminPage({ exps }: { exps: any[] }) {
           <Button variant="goldGradient" onClick={() => handleOpen("create")}>
             + Add Experience
           </Button>
-          <Button variant="surface" onClick={() => alert("Import CSV")}>
-            Import
+          <Button
+            variant="surface"
+            onClick={handleSeedExperiences}
+            disabled={loading}
+          >
+            {loading ? "Seeding..." : " Seed experience data"}
           </Button>
         </div>
       </div>

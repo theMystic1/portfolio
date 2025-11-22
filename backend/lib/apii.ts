@@ -14,6 +14,7 @@ import {
   GetTechnologiesResponse,
   GetTechnologyByIdResponse,
   LoginPayload,
+  OverviewApiResponse,
   ProjectPayload,
   RegisterPayload,
   TechnologyPayload,
@@ -32,7 +33,16 @@ export async function createExperience(payload: ExperienceFormValues) {
     payload
   );
 }
+export async function createBulkExperience(payload: ExperienceFormValues[]) {
+  return post<ExperienceFormValues[], CreateExperienceResponse>(
+    "/api/experience/bulk",
+    payload
+  );
+}
 
+export async function fetchOverview() {
+  return get<OverviewApiResponse>("/api/overview");
+}
 export async function fetchExperiences() {
   return get<GetExperiencesResponse>("/api/experience");
 }
@@ -90,6 +100,12 @@ export async function deleteTechnology(id: string) {
 
 export async function createProject(payload: ProjectPayload) {
   return post<ProjectPayload, CreateProjectResponse>("/api/projects", payload);
+}
+export async function createBulkProject(payload: ProjectPayload[]) {
+  return post<ProjectPayload[], CreateProjectResponse>(
+    "/api/projects/bulk",
+    payload
+  );
 }
 
 export async function fetchProjects() {

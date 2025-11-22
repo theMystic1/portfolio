@@ -94,9 +94,9 @@ export function validateProject(values: ProjectFormValues) {
   const errors: FieldErrors = {};
   if (!isNonEmpty(values.title)) add(errors, "title", "Title is required.");
 
-  if (!isNonEmpty(values.coverImage)) {
-    add(errors, "coverImage", "Cover image is required.");
-  }
+  // if (!isNonEmpty(values.coverImage)) {
+  //   add(errors, "coverImage", "Cover image is required.");
+  // }
 
   if (values.technologies && !Array.isArray(values.technologies)) {
     add(errors, "technologies", "Technologies must be an array.");

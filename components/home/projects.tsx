@@ -5,59 +5,15 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Project, ProjectCard } from "./project-card";
+import { GetProjectsResponse } from "@/types";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const PROJECTS: Project[] = [
-  {
-    title: "Portfolio with Admin Dashboard",
-    image: "/img.jpg", // replace with your asset
-    tags: [{ label: "Tailwind CSS" }, { label: "JS" }, { label: "Express.js" }],
-    problem:
-      "Maintaining content across multiple static pages required manual edits and slow updates.",
-    solution:
-      "Built an admin dashboard with Next-Auth and a content API enabling non-technical edits and deploy previews.",
-    result:
-      "Reduced content update time from hours to minutes while keeping design consistency and performance budgets.",
-    href: "#",
-  },
-  {
-    title: "Employee Management System",
-    image: "/image.png",
-    tags: [
-      { label: "Angular" },
-      { label: "GraphQL" },
-      { label: "Authentication" },
-      { label: "Apollo Client" },
-    ],
-    problem:
-      "Manual HR workflows led to lost requests and bloated spreadsheets.",
-    solution:
-      "Delivered an Angular frontend with GraphQL endpoints and secure file uploads to centralize employee data.",
-    result:
-      "Improved processing time by 40% and enabled granular permissions for managers and HR.",
-    href: "#",
-  },
-  {
-    title: "SpaceX Launch Tracker",
-    image: "/unsplash.avif",
-    tags: [
-      { label: "Angular" },
-      { label: "SpaceX API" },
-      { label: "TS" },
-      { label: "Tailwind" },
-    ],
-    problem:
-      "Launch data was scattered across endpoints, making comparisons difficult.",
-    solution:
-      "Built a unified dashboard with normalized data, advanced filters and client-side caching.",
-    result:
-      "Analysts compare missions in seconds with sub-second interactions on common queries.",
-    href: "#",
-  },
-];
-
-export default function ProjectsSection() {
+export default function ProjectsSection({
+  projects,
+}: {
+  projects: GetProjectsResponse;
+}) {
   const sectionRef = React.useRef<HTMLElement | null>(null);
 
   useGSAP(
@@ -112,6 +68,8 @@ export default function ProjectsSection() {
     { scope: sectionRef }
   );
 
+  const myProjects = projects?.projects;
+
   return (
     <section
       ref={sectionRef}
@@ -137,7 +95,7 @@ export default function ProjectsSection() {
       </p>
 
       <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {PROJECTS.map((p) => (
+        {myProjects.map((p) => (
           <ProjectCard key={p.title} project={p} />
         ))}
       </div>

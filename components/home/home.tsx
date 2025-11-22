@@ -14,8 +14,54 @@ import Experience from "./experience";
 import TechGrid from "./stack-grid";
 import ProjectsSection from "./projects";
 import ContactSection from "./contact";
+import { GetExperiencesResponse, GetProjectsResponse } from "@/types";
+import { GiCleaver } from "react-icons/gi";
+import { SiReaddotcv } from "react-icons/si";
+import {
+  BsGithub,
+  BsLinkedin,
+  BsTwitterX,
+  BsWhatsapp,
+  BsX,
+} from "react-icons/bs";
+import Link from "next/link";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const words = [
+  "Frontend Development",
+
+  "Mobile App Development",
+  "Backend Development",
+  "Open Source Contributor",
+  // "Frontend Development",
+  "Cross-Platform Development",
+  "UI Implementation",
+  "Code Optimization",
+];
+
+const socials = [
+  {
+    ICON: BsWhatsapp,
+    link: "https://wa.me/2349057070949",
+    color: "#16a34a",
+  },
+  {
+    ICON: BsLinkedin,
+    link: "https://www.linkedin.com/in/lucky-chukwujekwu-a6650727a/",
+    color: "#60a5fa",
+  },
+  {
+    ICON: BsTwitterX,
+    link: "https://x.com/__ugochukwu",
+    color: "#000",
+  },
+  {
+    ICON: BsGithub,
+    link: "https://github.com/theMystic1",
+    color: "#fafafa",
+  },
+];
 
 const HomeSection: React.FC = () => {
   const sectionRef = React.useRef<HTMLDivElement>(null);
@@ -205,7 +251,7 @@ const HomeSection: React.FC = () => {
 
       {/* credentials: split into words and fade one-by-one */}
       <span ref={credsRef} className="text-info-500">
-        Front-end Engineer
+        Web/mobile Engineer, Proficient in:
       </span>
 
       <h1
@@ -213,11 +259,7 @@ const HomeSection: React.FC = () => {
         className="md:text-4xl text-3xl font-bold bg-linear-to-r from-aurora-400 via-coral-500 to-gold-500 text-transparent bg-clip-text font-display"
       >
         <Typewriter
-          words={[
-            "Frontend Developer",
-            "UI/UX Designer",
-            "Open Source Builder",
-          ]}
+          words={words}
           typingSpeed={90}
           deletingSpeed={45}
           pauseBetween={1200}
@@ -231,26 +273,56 @@ const HomeSection: React.FC = () => {
         <Button variant="aurora" leadingIcon={<FiBookOpen />}>
           View Project
         </Button>
-        <Button variant="surface" leadingIcon={<MdOutlineMailOutline />}>
-          Get in touch
-        </Button>
+        <Link
+          href="https://drive.google.com/file/d/1JdmIP0DA46OKkerODNX_ND8dkwf-u6bG/view?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Button variant="surface" leadingIcon={<SiReaddotcv />}>
+            My Resume
+          </Button>
+        </Link>
+      </div>
+
+      <div className="flex items-center justify-center w-full">
+        <div className=" z-50 rounded-xl py-3 px-4 bg-surface/40 border border-ink-300 supports-backdrop-filter:backdrop-blur-md min-h-12 flex items-center gap-4">
+          {socials.map((soc, i) => {
+            const { ICON, color, link } = soc;
+            return (
+              <Link
+                key={i}
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ICON color={color} size={28} />
+              </Link>
+            );
+          })}
+        </div>
       </div>
       {/* </div> */}
     </section>
   );
 };
 
-export default function HomePage() {
+export default function HomePage({
+  projects,
+  experiences,
+}: {
+  projects: GetProjectsResponse;
+  experiences: GetExperiencesResponse;
+}) {
   return (
     <div className="w-full min-h-screen mt-10 flex flex-col gap-8">
       <HomeSection />
 
       <div className="bg-elevated flex flex-col gap-8 px-4 py-8 rounded-lg shadow-gold relative">
         <AboutMe />
-        <Experience />
+        <Experience experiences={experiences} />
       </div>
       <TechGrid />
-      <ProjectsSection />
+      <ProjectsSection projects={projects} />
       <ContactSection />
     </div>
   );
