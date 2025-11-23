@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { fetchExperiences, fetchProjects } from "@/backend/lib/apii";
 import StarfieldBackground from "@/components/background-layout";
 import HomePage from "@/components/home/home";

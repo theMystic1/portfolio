@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { fetchProjects } from "@/backend/lib/apii";
 import ProjectsAdminPage from "@/components/admin/projects/projects";
 

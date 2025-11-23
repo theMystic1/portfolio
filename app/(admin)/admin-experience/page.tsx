@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { fetchExperiences } from "@/backend/lib/apii";
 import ExperienceAdminPage from "@/components/admin/experience/experience";
 

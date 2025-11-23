@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { fetchOverview } from "@/backend/lib/apii";
 import AdminOverviewPage from "@/components/admin/overview/overview";
 
