@@ -270,9 +270,11 @@ const HomeSection: React.FC = () => {
         ref={ctasRef}
         className="mt-2 flex items-center justify-center gap-4"
       >
-        <Button variant="aurora" leadingIcon={<FiBookOpen />}>
-          View Project
-        </Button>
+        {/* <Link href="#projects">
+          <Button variant="aurora" leadingIcon={<FiBookOpen />}>
+            View Project
+          </Button>
+        </Link> */}
         <Link
           href="https://drive.google.com/file/d/1JdmIP0DA46OKkerODNX_ND8dkwf-u6bG/view?usp=sharing"
           target="_blank"
